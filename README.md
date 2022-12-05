@@ -164,6 +164,7 @@ $data = Xpath::shortcut()->setData($html)->select($rule, true);
     |参数|类型|说明|
     |:-:|---|---|
     |$page|\icy8\WebSpider\entity\Page|请求的页面实例|
+    |$data|Array\|boolean|匹配得到的数据值，如果匹配失败会返回`false`|
 
 4. onListPage：页面请求成功后触发
 
