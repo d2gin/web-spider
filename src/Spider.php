@@ -143,6 +143,7 @@ class Spider
             $this->crawl();
             $this->statistics['status'] = 'finished';
             if (!$this->daemonize) {
+                $this->removeStatisticsFile();
                 echo $this->generateStatisticUI([$this->statistics]);
             } else $this->saveStatisticsData();
         }
