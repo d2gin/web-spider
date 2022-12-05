@@ -1,5 +1,5 @@
 # 简单的web端爬虫框架
-基于链接挖掘方案的web爬虫框架，实现了多进程采集和xpath选择器等基础功能。
+基于链接挖掘方案的web爬虫框架，实现多进程采集和xpath选择器等基础功能。
 
 ### 软件架构
 
@@ -70,6 +70,7 @@
 
     ```php
     <?php
+    use icy8\WebSpider\selectors\Xpath;
     use icy8\WebSpider\Spider;
 
     include "../vendor/autoload.php";
@@ -87,6 +88,7 @@
                 'name'     => 'title',// 字段名
                 'rule'     => '//h1[@class="h_title"]',// 匹配规则
                 'required' => true,// 字段不为空
+                // 'selector' => Xpath::class,// 指定某个选择器，目前只支持Xpath
                 // 如果你希望得到字段值后做一些过滤操作，那么可以定义handle闭包实现。
                 // 如果rule没有配置，handle闭包也会被执行，此时的$value参数为null。
                 // 也就是说，你如果不希望框架自动匹配时，你可以定义handle闭包来自行匹配字段值。
