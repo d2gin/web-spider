@@ -1,0 +1,22 @@
+{
+  "name": "icy8/web-spider",
+  "authors": [
+    {
+      "name": "icy8",
+      "email": "672636920@qq.com"
+    }
+  ],
+  "license": "MIT",
+  "require": {
+    "php": ">=7.0",
+    "icy8/process": "*",
+    "guzzlehttp/guzzle": "~7.0"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "autoload": {
+    "psr-4": {
+      "icy8\\WebSpider\\": "src/"
+    }
+  }
+}
