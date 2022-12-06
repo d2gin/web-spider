@@ -131,7 +131,7 @@
     ];
     // 配置链接池，SplQueue容器不需要配置该项
     $spider->queueConfig = [
-        'type'     => 'redis',
+        'type'     => 'redis',// 如果有其他自定义的容器，这里填入类名即可
         'host'     => '127.0.0.1',
         'password' => '',
     ];
