@@ -1,5 +1,5 @@
-# 简单的web端爬虫框架
-基于链接挖掘方案的web爬虫框架，实现多进程采集和xpath选择器等基础功能。
+# 多进程web爬虫框架
+基于链接挖掘策略的web爬虫框架，实现多进程采集和xpath选择器等基础功能。
 
 ### 软件架构
 
@@ -37,6 +37,32 @@
     ```
 
     安装
+
+    ```shell
+    composer install
+    ```
+
+3. VCS安装
+    
+    编辑`composer.json`：
+
+    ```json
+    {
+        "require": {
+            "icy8/web-spider": "dev-master"
+        },
+        "repositories": [
+            {
+            "type": "vcs",
+            "url": "https://github.com/d2gin/web-spider"
+            }
+        ]
+    }
+    
+    ```
+
+    安装
+
     ```shell
     composer install
     ```
@@ -103,7 +129,7 @@
             ],
         ],
     ];
-    // 配置链接池，如果不配置默认使用SplQueue
+    // 配置链接池，SplQueue容器不需要配置该项
     $spider->queueConfig = [
         'type'     => 'redis',
         'host'     => '127.0.0.1',
