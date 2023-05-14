@@ -24,7 +24,7 @@ class Xpath implements Selector
         return $this;
     }
 
-    public function select($rule, $raw = false)
+    public function select($rule, $returnRaw = false)
     {
         $dom = new DOMDocument();
         if ($this->isXml) {
@@ -39,7 +39,7 @@ class Xpath implements Selector
             $nodeType = $item->nodeType;
             $nodeName = $item->nodeName;
             $content  = '';
-            if ($raw) {
+            if ($returnRaw) {
                 if ($this->isXml) {
                     $content = $dom->saveXML($item);
                 } else {

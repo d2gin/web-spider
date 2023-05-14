@@ -51,26 +51,13 @@ class Spider
         if (\PHP_SAPI !== 'cli') {
             exit("请在命令行中运行 \n");
         }
-        $this->event = new Event();
-        $this->queue = $this->resolveQueue();
-        $this->queue->clear();
+        $this->event  = new Event();
         $this->guzzle = new Client();
         $this->config = array_merge($this->config, $config);
         if (\DIRECTORY_SEPARATOR === '\\') {
             $this->os = 'windows';
         }
         $this->statisticsFile = __DIR__ . '/../spider-statistics.log';
-
-        // 清空日志文件
-        register_shutdown_function(function () {
-            if (!empty($this->pidFile) && is_file($this->pidFile)) {
-                @unlink($this->pidFile);
-            }
-            $gl = glob(__DIR__ . '/../spider-statistics*.log');
-            foreach ($gl as $file) {
-                @unlink($file);
-            }
-        });
     }
 
     public function run()
@@ -91,8 +78,9 @@ class Spider
             $this->start();
         } else if ($command == 'stop') {
             $pid = @file_get_contents($this->pidFile);
-            if ($pid) {
+            if ($pid && $this->os == 'linux') {
                 posix_kill($pid, SIGTERM);
+                pcntl_waitpid($pid, $status);
             }
             exit(0);
         } else if ($command == 'status') {
@@ -109,6 +97,10 @@ class Spider
     {
         $this->clearEcho();
         $this->displayUI();
+        if (!$this->queue) {
+            $this->queue = $this->resolveQueue();
+            $this->queue->clear();
+        }
         foreach ($this->config['entry_link'] as $url) {
             $link = Link::fromArray(['url' => $url]);
             $this->pushLink($link);
@@ -119,6 +111,16 @@ class Spider
             $daemon->start();
         }
         @file_put_contents($this->pidFile, getmypid());
+        // 清空日志文件
+        register_shutdown_function(function () {
+            if (!empty($this->pidFile) && is_file($this->pidFile)) {
+                @unlink($this->pidFile);
+            }
+            $gl = glob(__DIR__ . '/../spider-statistics*.log');
+            foreach ($gl as $file) {
+                @unlink($file);
+            }
+        });
         if ($this->count > 1 && $this->os == 'linux') {
             // 多进程模型
             $process        = new Worker();
@@ -138,6 +140,7 @@ class Spider
                 }
             });
         } else {
+            $this->signal();
             $this->statistics['pid']    = getmypid();
             $this->statistics['status'] = 'running';
             $this->crawl();
@@ -150,7 +153,7 @@ class Spider
     }
 
     /**
-     * 链接挖掘
+     * 链接发掘
      * @param Page $page
      */
     public function linkDigging($page)
@@ -423,11 +426,13 @@ class Spider
 
     public function saveStatisticsData()
     {
-        $fp = fopen($this->statisticsFile, 'w+');
-        flock($fp, LOCK_EX);
-        fwrite($fp, json_encode($this->statistics));
-        flock($fp, LOCK_UN);
-        fclose($fp);
+        $fp = @fopen($this->statisticsFile, 'w+');
+        if ($fp) {
+            flock($fp, LOCK_EX);
+            fwrite($fp, json_encode($this->statistics));
+            flock($fp, LOCK_UN);
+            fclose($fp);
+        }
     }
 
     public function removeStatisticsFile()
@@ -435,5 +440,34 @@ class Spider
         @unlink($this->statisticsFile);
     }
 
+    /**
+     * @param $config
+     * @return $this
+     * @throws \Exception
+     */
+    public function setQueueConfig($config)
+    {
+        $this->queueConfig = $config;
+        return $this;
+    }
 
+
+    protected function signal()
+    {
+        if ($this->os != 'linux') {
+            return;
+        }
+        pcntl_async_signals(true);
+        $handle = function ($signo) {
+            exit;
+        };
+        // 注册监听终止进程信号
+        pcntl_signal(SIGUSR1, $handle);
+        // 子进程退出信号
+        pcntl_signal(SIGCHLD, $handle);
+        // 终止进程
+        pcntl_signal(SIGINT, $handle);
+        // kill信号
+        pcntl_signal(SIGTERM, $handle);
+    }
 }
