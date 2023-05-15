@@ -72,10 +72,14 @@ class Spider
         $command = $argv[1] ?? null;
         $opt     = $argv[2] ?? null;
         if ($command == 'start') {
+            if (is_file($this->pidFile)) {
+                throw new \Exception('Webspider is already running.');
+            }
             if ($opt == '-d') {
                 $this->daemonize = true;
             }
             $this->start();
+            exit(0);
         } else if ($command == 'stop') {
             $pid = @file_get_contents($this->pidFile);
             if ($pid && $this->os == 'linux') {
@@ -133,7 +137,7 @@ class Spider
                 // 数据统计
                 $this->saveStatisticsData();
                 // 如果其他进程还在工作，则当前进程继续待命
-                while (count(glob(__DIR__ . '/../spider-statistics-*.log'))) {
+                while (count(glob(__DIR__ . '/../spider-statistics-*.log')) > 0) {
                     // 采集
                     $this->crawl();
                     $this->removeStatisticsFile();
@@ -187,17 +191,17 @@ class Spider
         $context = null;
         // 统计
         $this->statistics['status'] = 'running';
-        $this->saveStatisticsData();
+        //$this->saveStatisticsData();
         /* @var Link $link */
         while ($link = $this->queue->shift()) {
             try {
                 $response = $this->guzzle->get($link->url);
                 $html     = $response->getBody()->getContents();
                 $page     = Page::fromArray([
-                                                'link'     => $link,
-                                                'response' => $html,
-                                                'context'  => $context,
-                                            ]);
+                    'link'     => $link,
+                    'response' => $html,
+                    'context'  => $context,
+                ]);
                 $this->event->trigger('onPageReady', $page);
                 if ($page->linkDigging) {
                     $this->linkDigging($page);
