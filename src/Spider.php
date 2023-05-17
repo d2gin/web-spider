@@ -106,7 +106,7 @@ class Spider
             $this->queue->clear();
         }
         foreach ($this->config['entry_link'] as $url) {
-            $link = Link::fromArray(['url' => $url]);
+            $link = Link::fromArray(['url' => $url, 'type' => $this->isContentUrl($url) ? Link::CONTENT_PAGE : Link::ENTRY_PAGE]);
             $this->pushLink($link);
         }
         if ($this->daemonize && $this->os == 'linux') {
